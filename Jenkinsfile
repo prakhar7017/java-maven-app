@@ -28,6 +28,8 @@ pipeline {
             steps {
                 script {
                     buildImage 'prakhar7017/java-maven-repo:java-maven-app-3.0'
+                    dockerLogin()
+                    dockerPush 'prakhar7017/java-maven-repo:java-maven-app-3.0'
                 }
             }
         }
