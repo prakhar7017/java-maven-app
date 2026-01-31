@@ -21,6 +21,12 @@ pipeline {
             steps {
                 script {
                     echo 'incrementing version'
+                    sh '''
+                        #!/bin/bash
+                        mvn build-helper:parse-version versions:set \
+                        -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion} \
+                        versions:commit
+                    ''' 
                      def version = sh(
                             script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
                             returnStdout: true
