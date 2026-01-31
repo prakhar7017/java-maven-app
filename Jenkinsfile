@@ -1,3 +1,10 @@
+// library identifier: 'jenkins-shared-library@main', retriever: modernSCM(
+//         [$class : 'GitSCMSource'
+//          remote: 'https://github.com/prakhar7017/jenkins-shared-library.git'
+//             credentialsId: 'gitlab-credentials'
+//         ]
+// ) for not global 
+
 @Library('jenkins-shared-library')
 def gv
 pipeline {
