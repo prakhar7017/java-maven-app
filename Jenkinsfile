@@ -5,8 +5,8 @@
 //         ]
 // ) for not global 
 
-@Library('jenkins-shared-library')
-def gv
+@Library('jenkins-shared-library')_
+
 pipeline {
     agent any
     tools {
@@ -17,10 +17,16 @@ pipeline {
 //         booleanParam(name: 'executeTests', defaultValue: true, description: 'Run tests?')
 //    }
     stages {
-        stage('init') {
+        stage('increment version') {
             steps {
                 script {
-                    gv = load 'script.groovy'
+                    echo 'incrementing version'
+                    sh 'mvn build-helper:parse-version versions:set \
+                         -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion}
+                        versions:commit'
+                    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
+                    def version = matcher[0][1]
+                    env.IMAGE_NAME = "$version-$BUILD_NUMBER"
                 }
             }
         }
@@ -34,9 +40,9 @@ pipeline {
         stage("build image") {
             steps {
                 script {
-                    buildImage 'prakhar7017/java-maven-repo:java-maven-app-3.0'
+                    buildImage "prakhar7017/java-maven-repo:$IMAGE_NAME"
                     dockerLogin()
-                    dockerPush 'prakhar7017/java-maven-repo:java-maven-app-3.0'
+                    dockerPush "prakhar7017/java-maven-repo:$IMAGE_NAME"
                 }
             }
         }
