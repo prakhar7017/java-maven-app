@@ -23,15 +23,23 @@ pipeline {
                     echo 'incrementing version'
                     sh '''
                         #!/bin/bash
-                        mvn build-helper:parse-version versions:set \
-                        -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion} \
-                        versions:commit
-                    ''' 
-                     def version = sh(
+                        set -e
+                        CURRENT=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+                        # Strip -SNAPSHOT for parsing (e.g. 1.1.0-SNAPSHOT -> 1.1.0)
+                        BASE=${CURRENT%-SNAPSHOT}
+                        MAJOR=$(echo "$BASE" | cut -d. -f1)
+                        MINOR=$(echo "$BASE" | cut -d. -f2)
+                        PATCH=$(echo "$BASE" | cut -d. -f3)
+                        PATCH=$((PATCH + 1))
+                        NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+                        mvn org.codehaus.mojo:versions-maven-plugin:2.16.2:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false
+                        mvn org.codehaus.mojo:versions-maven-plugin:2.16.2:commit
+                    '''
+                    def version = sh(
                             script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
                             returnStdout: true
                     ).trim()
-                    env.IMAGE_NAME = "$version-$BUILD_NUMBER"
+                    env.IMAGE_NAME = "${version}-${BUILD_NUMBER}"
                 }
             }
         }
